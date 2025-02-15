@@ -1,13 +1,13 @@
 import { Router } from "express";
 import postControler from "../controler/postControler.js";
-import { postMiddleware } from "../middleware/postMiddleware.js";
+import { restMiddleware } from "../middleware/restMiddleware.js";
 
 const postRouter = Router();
 
-postRouter.post("/",postMiddleware, postControler.create);
+postRouter.post("/", restMiddleware, postControler.create);
 postRouter.get("/", postControler.getAll);
-postRouter.get("/:id",postControler.getOne);
-postRouter.put("/:id", postMiddleware, postControler.update);
-postRouter.delete("/:id", postMiddleware, postControler.delete);
+postRouter.get("/:id", postControler.getOne);
+postRouter.put("/:id", restMiddleware, postControler.update);
+postRouter.delete("/:id", restMiddleware, postControler.delete);
 
 export default postRouter;
