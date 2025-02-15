@@ -3,14 +3,18 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRouter from "./routes/authRourer.js";
 import postRouter from "./routes/postRouter.js";
-import cors from 'cors'
+import bodyParser from "body-parser";
+import cors from "cors";
+import morgan from "morgan";
 
 const app = express();
 dotenv.config();
 
 app.use(express.json());
 app.use(cors());
-
+app.use(morgan("dev"));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 app.use("/api", authRouter);

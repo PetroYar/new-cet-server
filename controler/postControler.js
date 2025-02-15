@@ -3,7 +3,9 @@ import Post from "../models/Post.js";
 const postControler = {
   create: async (req, res) => {
     try {
-      const { title, description, userId } = req.body;
+      const { title, description } = req.body;
+      const userId = req.user.id
+      
       const post = new Post({
         title,
         description,

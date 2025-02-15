@@ -7,7 +7,7 @@ const postRouter = Router();
 postRouter.post("/",postMiddleware, postControler.create);
 postRouter.get("/", postControler.getAll);
 postRouter.get("/:id",postControler.getOne);
-postRouter.put("/:id",postControler.update);
-postRouter.delete("/:id",postControler.delete);
+postRouter.put("/:id", postMiddleware, postControler.update);
+postRouter.delete("/:id", postMiddleware, postControler.delete);
 
 export default postRouter;

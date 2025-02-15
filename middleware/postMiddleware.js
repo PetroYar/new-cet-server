@@ -1,21 +1,21 @@
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 
 export const postMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Немає доступу, потрібен токен" });
+  const token = req.headers.authorization?.split(" ")[1]; 
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const token = authHeader.split(" ")[1];
-
-  jwt.verify(token, process.env.SECRET, (err, decoded) => {
-    if (err) {
-      return res
-        .status(403)
-        .json({ message: "Невірний або прострочений токен" });
-    }
-
-    req.user = decoded; // Додаємо інформацію про користувача в запит
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    req.user = decoded; 
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({ message: "Invalid token" });
+  }
 };
