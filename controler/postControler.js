@@ -35,21 +35,21 @@ const postControler = {
           },
         },
       ]);
-        const totalPosts = result[0].totalCount[0]?.count || 0;
-        const posts = result[0].posts;
-        const totalPages = Math.ceil(totalPosts / limit);
+      const totalPosts = result[0].totalCount[0]?.count || 0;
+      const posts = result[0].posts;
+      const totalPages = Math.ceil(totalPosts / limit);
 
-        res.status(200).json({
-          firstPage: 1,
-          lastPage: totalPages,
-          currentPage,
-          nextPage: currentPage < totalPages ? currentPage + 1 : null,
-          prevPage: currentPage > 1 ? currentPage - 1 : null,
-          posts,
-          _limit: limit,
-          _start: start,
-          _order: _order,
-        });
+      res.status(200).json({
+        firstPage: 1,
+        lastPage: totalPages,
+        currentPage,
+        nextPage: currentPage < totalPages ? currentPage + 1 : null,
+        prevPage: currentPage > 1 ? currentPage - 1 : null,
+        posts,
+        _limit: limit,
+        _start: start,
+        _order: _order,
+      });
     } catch (error) {
       return res.status(400).json({ message: "Error retrieving posts", error });
     }
@@ -85,14 +85,6 @@ const postControler = {
       res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting post", error });
-    }
-  },
-  count: async (req, res) => {
-    try {
-      const count = await Post.countDocuments();
-      res.status(200).json({ count });
-    } catch (error) {
-      res.status(500).json({ message: "Error counting posts", error });
     }
   },
 };
