@@ -79,14 +79,14 @@ const postControler = {
         },
         {
           $lookup: {
-            from: "users", 
-            localField: "userId", 
-            foreignField: "_id", 
-            as: "user", 
+            from: "users", // З'єднуємо з колекцією users
+            localField: "userId", // Поле в Post, яке містить ID користувача
+            foreignField: "_id", // Поле в users, яке містить ID
+            as: "user", // Нове поле, яке міститиме дані користувача
           },
         },
         {
-          $unwind: "$user",
+          $unwind: "$user", // Якщо користувач знайдений, "розгортаємо" його
         },
       ]);
 
@@ -94,12 +94,44 @@ const postControler = {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      res.status(200).json(post[0]); 
+      res.status(200).json(post[0]); // Відповідь з першим постом, оскільки це масив
     } catch (error) {
       return res.status(400).json({ message: "Error retrieving post", error });
     }
   },
+  getOne: async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: "ID is required" });
+      }
 
+      const post = await Post.aggregate([
+        {
+          $match: { _id: mongoose.Types.ObjectId(id) }, 
+        },
+        {
+          $lookup: {
+            from: "users", 
+            localField: "userId", 
+            foreignField: "_id", 
+            as: "user", 
+          },
+        },
+        {
+          $unwind: "$user", 
+        },
+      ]);
+
+      if (post.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.status(200).json(post[0]);
+    } catch (error) {
+      return res.status(400).json({ message: "Error retrieving post", error });
+    }
+  },
   update: async (req, res) => {
     try {
     } catch (error) {}
