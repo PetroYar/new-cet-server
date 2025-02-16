@@ -33,6 +33,15 @@ const postControler = {
               { $sort: { createdAt: sortOrder } },
               { $skip: start },
               { $limit: limit },
+              {
+                $lookup: {
+                  from: "users", 
+                  localField: "userId",
+                  foreignField: "_id", 
+                  as: "user", 
+                },
+              },
+              { $unwind: "$user" },
             ],
           },
         },
