@@ -20,7 +20,7 @@ const postControler = {
 
   getAll: async (req, res) => {
     try {
-      const { _limit = 10, _start = 0, _order = "asc" } = req.query;
+      const { _limit = 10, _start = 0, _order = "desc" } = req.query;
       const limit = parseInt(_limit, 10);
       const start = parseInt(_start, 10);
       const sortOrder = _order === "desc" ? -1 : 1;
