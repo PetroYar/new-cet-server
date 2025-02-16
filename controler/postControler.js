@@ -4,8 +4,8 @@ const postControler = {
   create: async (req, res) => {
     try {
       const { title, description } = req.body;
-      const userId = req.user.id
-      
+      const userId = req.user.id;
+
       const post = new Post({
         title,
         description,
@@ -35,10 +35,10 @@ const postControler = {
               { $limit: limit },
               {
                 $lookup: {
-                  from: "users", 
+                  from: "users",
                   localField: "userId",
-                  foreignField: "_id", 
-                  as: "user", 
+                  foreignField: "_id",
+                  as: "user",
                 },
               },
               { $unwind: "$user" },
@@ -72,12 +72,34 @@ const postControler = {
       if (!id) {
         return res.status(400).json({ message: "ID is required" });
       }
-      const post = await Post.findById(id);
-      res.status(200).json(post);
+
+      const post = await Post.aggregate([
+        {
+          $match: { _id: mongoose.Types.ObjectId(id) }, // Фільтрація за ID
+        },
+        {
+          $lookup: {
+            from: "users", 
+            localField: "userId", 
+            foreignField: "_id", 
+            as: "user", 
+          },
+        },
+        {
+          $unwind: "$user",
+        },
+      ]);
+
+      if (post.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.status(200).json(post[0]); 
     } catch (error) {
-      return res.status(400).json({ message: "Error retrieving posts", error });
+      return res.status(400).json({ message: "Error retrieving post", error });
     }
   },
+
   update: async (req, res) => {
     try {
     } catch (error) {}
