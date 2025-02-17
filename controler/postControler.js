@@ -1,5 +1,5 @@
 import Post from "../models/Post.js";
-
+import mongoose from "mongoose";
 const postControler = {
   create: async (req, res) => {
     try {
@@ -69,15 +69,38 @@ const postControler = {
   getOne: async (req, res) => {
     try {
       const { id } = req.params;
-      if (!id) {
-        return res.status(400).json({ message: "ID is required" });
+
+      const objectId = new mongoose.Types.ObjectId(id);
+      console.log("ObjectId:", objectId);
+
+      const post = await Post.aggregate([
+        {
+          $match: { _id: objectId }, 
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId", 
+            foreignField: "_id",
+            as: "user", 
+          },
+        },
+        {
+          $unwind: "$user", 
+        },
+      ]);
+
+  
+      if (!post || post.length === 0) {
+        return res.status(404).json({ message: "Post was not found" });
       }
-      const post = await Post.findById(id);
-      res.status(200).json(post);
+      return res.status(200).json(post[0]);
     } catch (error) {
-      return res.status(400).json({ message: "Error retrieving posts", error });
+      console.error(error);
+      return res.status(500).json({ message: "Failed to get post" });
     }
   },
+
   update: async (req, res) => {
     try {
     } catch (error) {}
