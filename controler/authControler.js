@@ -7,7 +7,7 @@ dotenv.config();
 
 const generateAccessToken = (id) => {
   const payload = { id };
-  return jwt.sign(payload, process.env.SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, process.env.SECRET, { expiresIn: "30d" })
 };
 
 const authControler = {
@@ -20,6 +20,8 @@ const authControler = {
           .json({ message: "Error when registering", errror });
       }
       const { username, email, password } = req.body;
+
+    
 
       const existUserName = await User.findOne({ username });
       if (existUserName) {

@@ -6,6 +6,7 @@ import postRouter from "./routes/postRouter.js";
 import bodyParser from "body-parser";
 import cors from "cors";
 import morgan from "morgan";
+import commentRouter from "./routes/commentRouter.js";
 
 const app = express();
 dotenv.config();
@@ -16,9 +17,9 @@ app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
 app.use("/api", authRouter);
 app.use("/api/posts", postRouter);
+app.use("/api/comments", commentRouter);
 
 const startApp = async () => {
   try {
