@@ -143,7 +143,48 @@ const postControler = {
             as: "comments",
           },
         },
-        
+        {
+          $addFields: {
+            comments: {
+              $filter: {
+                input: "$comments",
+                as: "comment",
+                cond: { $ne: ["$$comment", null] },
+              },
+            },
+          },
+        },
+        {
+          $unwind: {
+            path: "$comments",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "comments.userId",
+            foreignField: "_id",
+            as: "comments.user",
+          },
+        },
+        {
+          $unwind: {
+            path: "$comments.user",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            comments: {
+              $cond: {
+                if: { $eq: [{ $type: "$comments" }, "array"] },
+                then: "$comments",
+                else: [{ $ifNull: ["$comments", {}] }],
+              },
+            },
+          },
+        },
         {
           $project: {
             title: 1,
@@ -155,14 +196,18 @@ const postControler = {
               $filter: {
                 input: "$comments",
                 as: "comment",
-                cond: { $ne: ["$$comment", null] },
+                cond: { $ne: ["$$comment", {}] },
               },
-            }, 
+            },
             createdAt: 1,
             updatedAt: 1,
           },
         },
       ]);
+
+      if (!post.length) {
+        return res.status(404).json({ message: "Post not found" });
+      }
 
       return res.status(200).json(post[0]);
     } catch (error) {

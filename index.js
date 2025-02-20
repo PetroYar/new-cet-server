@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import morgan from "morgan";
 import commentRouter from "./routes/commentRouter.js";
+import categoryRouter from "./routes/categoryRouter.js";
 
 const app = express();
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 app.use("/api", authRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
+app.use("/api/categories", categoryRouter);
 
 const startApp = async () => {
   try {
