@@ -121,9 +121,8 @@ const postControler = {
       const objectId = new mongoose.Types.ObjectId(id);
 
       const post = await Post.aggregate([
-        {
-          $match: { _id: objectId },
-        },
+        { $match: { _id: objectId } },
+
         {
           $lookup: {
             from: "users",
@@ -132,9 +131,8 @@ const postControler = {
             as: "user",
           },
         },
-        {
-          $unwind: "$user",
-        },
+        { $unwind: "$user" },
+
         {
           $lookup: {
             from: "comments",
@@ -143,44 +141,39 @@ const postControler = {
             as: "comments",
           },
         },
-        {
-          $addFields: {
-            comments: {
-              $filter: {
-                input: "$comments",
-                as: "comment",
-                cond: { $ne: ["$$comment", null] },
-              },
-            },
-          },
-        },
-        {
-          $unwind: {
-            path: "$comments",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+
         {
           $lookup: {
             from: "users",
             localField: "comments.userId",
             foreignField: "_id",
-            as: "comments.user",
+            as: "commentUsers",
           },
         },
-        {
-          $unwind: {
-            path: "$comments.user",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+
         {
           $addFields: {
             comments: {
-              $cond: {
-                if: { $eq: [{ $type: "$comments" }, "array"] },
-                then: "$comments",
-                else: [{ $ifNull: ["$comments", {}] }],
+              $map: {
+                input: "$comments",
+                as: "comment",
+                in: {
+                  _id: "$$comment._id",
+                  description: { $ifNull: ["$$comment.description", ""] },
+                  createdAt: "$$comment.createdAt",
+                  user: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$commentUsers",
+                          as: "cu",
+                          cond: { $eq: ["$$cu._id", "$$comment.userId"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
               },
             },
           },
@@ -191,16 +184,15 @@ const postControler = {
             description: 1,
             likesBy: 1,
             likes: 1,
-            user: 1,
-            comments: {
-              $filter: {
-                input: "$comments",
-                as: "comment",
-                cond: { $ne: ["$$comment", {}] },
-              },
-            },
             createdAt: 1,
             updatedAt: 1,
+            user: { _id: 1, username: 1, email: 1 },
+            comments: {
+              _id: 1,
+              description: 1,
+              createdAt: 1,
+              user: { _id: 1, username: 1 },
+            },
           },
         },
       ]);
@@ -248,7 +240,7 @@ const postControler = {
 
   update: async (req, res) => {
     try {
-      // const { _id } = req.user;
+      const userId = req.user.id;
 
       const { id } = req.params;
       const { title, description } = req.body;
@@ -258,9 +250,9 @@ const postControler = {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      // if (id != _id) {
-      //   return res.status(403).json({ message: "Not authorized" });
-      // }
+      if (post.userId.toString() !== userId.toString()) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
 
       post.title = title || post.title;
       post.description = description || post.description;
@@ -273,17 +265,28 @@ const postControler = {
   },
 
   delete: async (req, res) => {
+    const userId = req.user.id;
+
     try {
       const { id } = req.params;
       if (!id) {
         return res.status(400).json({ message: "ID is required" });
       }
-      await Comment.deleteMany({ postId: id });
+      const post = await Post.findById(id);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      if (post.userId.toString() !== userId.toString()) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
 
       const deletedPost = await Post.findByIdAndDelete(id);
       if (!deletedPost) {
         return res.status(404).json({ message: "Post not found" });
       }
+
+      await Comment.deleteMany({ postId: id });
 
       res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {
